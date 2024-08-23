@@ -21,10 +21,10 @@ last_notification_time = None
 async def get_btc_price():
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd') as response:
+            async with session.get('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT') as response:
                 if response.status == 200:
                     data = await response.json()
-                    return data['bitcoin']['usd']
+                    return float(data['price'])
                 else:
                     logger.error(f"API request failed with status code: {response.status}")
                     return None
