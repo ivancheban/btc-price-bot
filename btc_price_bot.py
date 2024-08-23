@@ -1,6 +1,5 @@
 import os
 import time
-import requests
 from telegram.ext import Updater, CommandHandler
 from apscheduler.schedulers.background import BackgroundScheduler
 
