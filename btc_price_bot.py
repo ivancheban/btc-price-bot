@@ -51,8 +51,8 @@ def main():
     application.add_handler(CommandHandler("price", price_command))  # Add this line
 
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(daily_salary_notification, 'cron', hour=10, minute=30, args=[application, '-1001581609986'], timezone=KYIV_TZ)
-    scheduler.add_job(daily_btc_notification, 'cron', hour=12, minute=0, args=[application, '-1001581609986'], timezone=KYIV_TZ)
+    scheduler.add_job(daily_salary_notification, 'cron', hour=10, minute=30, args=[application, '-4561434244'], timezone=KYIV_TZ)
+    scheduler.add_job(daily_btc_notification, 'cron', hour=12, minute=0, args=[application, '-4561434244'], timezone=KYIV_TZ)
     scheduler.start()
 
     application.run_polling()
