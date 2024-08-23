@@ -25,7 +25,7 @@ async def get_btc_price():
             else:
                 return None
 
-async def btc_price(update: Update, context: CallbackContext) -> None:
+async def price_command(update: Update, context: CallbackContext) -> None:
     price = await get_btc_price()
     if price:
         await update.message.reply_text(f"Current BTC price: ${price:,.2f}")
@@ -48,7 +48,7 @@ async def daily_btc_notification(context: CallbackContext, chat_id: str) -> None
 def main():
     application = Application.builder().token(TOKEN).build()
     application.add_handler(CommandHandler("when_salary", when_salary))
-    application.add_handler(CommandHandler("btc_price", btc_price))
+    application.add_handler(CommandHandler("price", price_command))  # Add this line
 
     scheduler = AsyncIOScheduler()
     scheduler.add_job(daily_salary_notification, 'cron', hour=10, minute=30, args=[application, '-1001581609986'], timezone=KYIV_TZ)
