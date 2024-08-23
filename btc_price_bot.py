@@ -1,7 +1,7 @@
 import os
 import time
 import requests
-from telegram.ext import Updater, CommandHandler
+from telegram.ext import Application, CommandHandler
 from apscheduler.schedulers.background import BackgroundScheduler
 
 # Replace with your Telegram Bot Token
@@ -21,7 +21,7 @@ def get_btc_price():
     data = response.json()
     return float(data['data']['amount'])
 
-def send_price_update(context):
+def send_price_update(application):
     global last_price
     current_price = get_btc_price()
     
@@ -29,11 +29,11 @@ def send_price_update(context):
         last_price = current_price
     
     message = f"Current BTC Price: ${current_price:.2f}"
-    context.bot.send_message(chat_id=CHAT_ID, text=message)
+    application.bot.send_message(chat_id=CHAT_ID, text=message)
     
-    check_price_change(context, current_price)
+    check_price_change(application, current_price)
 
-def check_price_change(context, current_price):
+def check_price_change(application, current_price):
     global last_price, last_notification_time
     
     if last_price is not None:
@@ -43,32 +43,31 @@ def check_price_change(context, current_price):
             change_percentage = price_change * 100
             direction = "increased" if current_price > last_price else "decreased"
             message = f"Alert: BTC price has {direction} by {change_percentage:.2f}%\nCurrent price: ${current_price:.2f}"
-            context.bot.send_message(chat_id=CHAT_ID, text=message)
+            application.bot.send_message(chat_id=CHAT_ID, text=message)
             last_notification_time = time.time()
     
     last_price = current_price
 
-def start(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Bot started. You will receive hourly BTC price updates. Use /price to get the current price.")
+async def start(update, context):
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Bot started. You will receive hourly BTC price updates. Use /price to get the current price.")
 
-def get_price(update, context):
+async def get_price(update, context):
     current_price = get_btc_price()
     message = f"Current BTC Price: ${current_price:.2f}"
-    context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
-def main():
-    updater = Updater(TOKEN, use_context=True)
-    dp = updater.dispatcher
-
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("price", get_price))
+async def main():
+    application = Application.builder().token(TOKEN).build()
+    
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("price", get_price))
 
     scheduler = BackgroundScheduler()
-    scheduler.add_job(send_price_update, 'interval', hours=1, args=[updater])
+    scheduler.add_job(send_price_update, 'interval', hours=1, args=[application])
     scheduler.start()
 
-    updater.start_polling()
-    updater.idle()
+    await application.run_polling()
 
 if __name__ == '__main__':
-    main()
+    import asyncio
+    asyncio.run(main())
