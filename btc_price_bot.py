@@ -13,8 +13,10 @@ logger = logging.getLogger(__name__)
 
 TOKEN = os.getenv('TOKEN')
 KYIV_TZ = pytz.timezone('Europe/Kyiv')
+CHAT_ID = '-4561434244'
 
-# ... (keep all your existing functions)
+last_btc_price = None
+last_notification_time = None
 
 async def get_btc_price():
     async with aiohttp.ClientSession() as session:
@@ -25,34 +27,45 @@ async def get_btc_price():
             else:
                 return None
 
+async def send_btc_price_update(context: CallbackContext, price: float, force: bool = False):
+    global last_btc_price, last_notification_time
+    current_time = datetime.now(KYIV_TZ)
+
+    if last_btc_price is None:
+        last_btc_price = price
+        last_notification_time = current_time
+        await context.bot.send_message(chat_id=CHAT_ID, text=f"🚨 BTC Price Update 🚨\nCurrent BTC price: ${price:,.2f}")
+        return
+
+    price_change_percent = abs(price - last_btc_price) / last_btc_price * 100
+
+    if force or price_change_percent >= 2 or (current_time - last_notification_time) >= timedelta(hours=1):
+        emoji = "🔺" if price > last_btc_price else "🔻"
+        message = f"🚨 BTC Price Update 🚨\nCurrent BTC price: ${price:,.2f}\n{emoji} Change: {price_change_percent:.2f}%"
+        await context.bot.send_message(chat_id=CHAT_ID, text=message)
+        last_btc_price = price
+        last_notification_time = current_time
+
+async def check_btc_price(context: CallbackContext):
+    price = await get_btc_price()
+    if price:
+        await send_btc_price_update(context, price)
+    else:
+        logger.error("Failed to fetch BTC price")
+
 async def price_command(update: Update, context: CallbackContext) -> None:
     price = await get_btc_price()
     if price:
-        await update.message.reply_text(f"Current BTC price: ${price:,.2f}")
+        await send_btc_price_update(context, price, force=True)
     else:
         await update.message.reply_text("Sorry, I couldn't fetch the BTC price at the moment.")
 
-async def daily_btc_notification(context: CallbackContext, chat_id: str) -> None:
-    try:
-        logger.info("Executing scheduled BTC job...")
-        price = await get_btc_price()
-        if price:
-            message = f"🚨 Daily BTC Update 🚨\nCurrent BTC price: ${price:,.2f}"
-            response = await context.bot.send_message(chat_id=chat_id, text=message)
-            logger.info(f"BTC message sent with message id {response.message_id}")
-        else:
-            logger.error("Failed to fetch BTC price")
-    except Exception as e:
-        logger.error(f"Failed to send BTC message: {str(e)}")
-
 def main():
     application = Application.builder().token(TOKEN).build()
-    application.add_handler(CommandHandler("when_salary", when_salary))
-    application.add_handler(CommandHandler("price", price_command))  # Add this line
+    application.add_handler(CommandHandler("price", price_command))
 
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(daily_salary_notification, 'cron', hour=10, minute=30, args=[application, '-4561434244'], timezone=KYIV_TZ)
-    scheduler.add_job(daily_btc_notification, 'cron', hour=12, minute=0, args=[application, '-4561434244'], timezone=KYIV_TZ)
+    scheduler.add_job(check_btc_price, 'interval', minutes=5, args=[application])
     scheduler.start()
 
     application.run_polling()
