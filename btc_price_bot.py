@@ -39,20 +39,20 @@ async def send_btc_price_update(context: ContextTypes.DEFAULT_TYPE, price: float
     if last_btc_price is None:
         last_btc_price = price
         last_notification_time = current_time
-        await context.bot.send_message(chat_id=chat_id, text=f"🚨 BTC Price Update 🚨\nCurrent BTC price: ${price:,.2f}")
+        await context.bot.send_message(chat_id=chat_id, text=f"🟩 🚨 BTC Price Update 🚨\nCurrent BTC price: ${price:,.2f}")
         return
 
     price_change_percent = (price - last_btc_price) / last_btc_price * 100
 
-    if force or abs(price_change_percent) >= 2 or (current_time - last_notification_time) >= timedelta(hours=1):
+    if force or abs(price_change_percent) >= 1 or (current_time - last_notification_time) >= timedelta(hours=1):
         if price > last_btc_price:
-            emoji = "🟩"  # Green up-pointing arrow for price increase
+            emoji = "🟩"  # Green square for price increase
         elif price < last_btc_price:
-            emoji = "🔻"  # Red down-pointing triangle for price decrease
+            emoji = "🟥"  # Red square for price decrease
         else:
             emoji = "▪️"  # Black square for no change (unlikely with float values)
 
-        message = f"🚨 BTC Price Update 🚨\nCurrent BTC price: ${price:,.2f}\n{emoji} Change: {price_change_percent:+.2f}%"
+        message = f"{emoji} 🚨 BTC Price Update 🚨\nCurrent BTC price: ${price:,.2f}\n{emoji} Change: {price_change_percent:+.2f}%"
         await context.bot.send_message(chat_id=chat_id, text=message)
         last_btc_price = price
         last_notification_time = current_time
