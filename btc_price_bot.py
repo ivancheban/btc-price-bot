@@ -44,23 +44,29 @@ async def send_btc_price_update(context: ContextTypes.DEFAULT_TYPE, price: float
 
     price_change_percent = (price - last_btc_price) / last_btc_price * 100
 
-    if force or abs(price_change_percent) >= 1 or (current_time - last_notification_time) >= timedelta(hours=1):
-        if price > last_btc_price:
-            emoji = "🟩"  # Green square for price increase
-        elif price < last_btc_price:
-            emoji = "🔻"  # Red down-pointing triangle for price decrease
-        else:
-            emoji = "▪️"  # Black square for no change (unlikely with float values)
+    if price > last_btc_price:
+        emoji = "🟩"  # Green square for price increase
+    elif price < last_btc_price:
+        emoji = "🔻"  # Red down-pointing triangle for price decrease
+    else:
+        emoji = "▪️"  # Black square for no change (unlikely with float values)
 
-        message = f"🚨 BTC Price Update 🚨\nCurrent BTC price: ${price:,.2f}\n{emoji} Change: {price_change_percent:+.2f}%"
+    message = f"🚨 BTC Price Update 🚨\nCurrent BTC price: ${price:,.2f}\n{emoji} Change: {price_change_percent:+.2f}%"
+
+    if force or chat_id != CHAT_ID:
+        # Always send message for force updates or non-group chats
         await context.bot.send_message(chat_id=chat_id, text=message)
-        last_btc_price = price
-        last_notification_time = current_time
+    elif abs(price_change_percent) >= 1:
+        # Send to group chat only if change is 1% or more
+        await context.bot.send_message(chat_id=CHAT_ID, text=message)
+
+    last_btc_price = price
+    last_notification_time = current_time
 
 async def check_btc_price(context: ContextTypes.DEFAULT_TYPE):
     price = await get_btc_price()
     if price:
-        await send_btc_price_update(context, price, force=True)
+        await send_btc_price_update(context, price)
     else:
         logger.error("Failed to fetch BTC price")
 
