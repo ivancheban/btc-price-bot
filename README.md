@@ -4,11 +4,11 @@ This Telegram bot provides real-time updates on Bitcoin (BTC) price changes. It 
 
 ## Features
 
-- Fetches real-time BTC price from Binance API
-- Sends price updates to a specified Telegram chat
-- Notifies on price changes of 2% or more
-- Sends hourly updates even if the price change is less than 2%
-- Responds to manual price check commands
+- Fetches real-time BTC price from Binance API.
+- Sends price updates to a specified Telegram chat.
+- Notifies on price changes of 2% or more.
+- Sends hourly updates even if the price change is less than 2%.
+- Responds to manual price check commands.
 
 ## Requirements
 
