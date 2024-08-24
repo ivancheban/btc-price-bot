@@ -37,7 +37,7 @@ This Telegram bot provides real-time updates on Bitcoin (BTC) price changes. It 
 
 1. Run the script:
     ```python
-    python bot.py
+    python btc_price_bot.py
     ```
 2. The bot will start polling for updates and checking the BTC price every 10 seconds
 3. Use the `/price` command in the Telegram chat to manually request the current BTC price
