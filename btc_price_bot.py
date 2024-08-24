@@ -39,7 +39,7 @@ async def send_btc_price_update(context: ContextTypes.DEFAULT_TYPE, price: float
     if last_btc_price is None:
         last_btc_price = price
         last_notification_time = current_time
-        await context.bot.send_message(chat_id=chat_id, text=f"🚨 BTC Price Update 🚨\nCurrent BTC price: ${price:,.2f}")
+        await context.bot.send_message(chat_id=chat_id, text=f"🚨 BTC Price Update 🚨\nCurrent BTC price: ${price:,.2f}\n{emoji} Change: {price_change_percent:+.2f}%")
         return
 
     price_change_percent = (price - last_btc_price) / last_btc_price * 100
