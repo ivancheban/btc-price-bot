@@ -39,7 +39,7 @@ async def send_btc_price_update(context: ContextTypes.DEFAULT_TYPE, price: float
     if last_btc_price is None:
         last_btc_price = price
         last_notification_time = current_time
-        await context.bot.send_message(chat_id=chat_id, text=f"🟩 🚨 BTC Price Update 🚨\nCurrent BTC price: ${price:,.2f}")
+        await context.bot.send_message(chat_id=chat_id, text=f"🚨 BTC Price Update 🚨\nCurrent BTC price: ${price:,.2f}")
         return
 
     price_change_percent = (price - last_btc_price) / last_btc_price * 100
@@ -48,11 +48,11 @@ async def send_btc_price_update(context: ContextTypes.DEFAULT_TYPE, price: float
         if price > last_btc_price:
             emoji = "🟩"  # Green square for price increase
         elif price < last_btc_price:
-            emoji = "🟥"  # Red square for price decrease
+            emoji = "🔻"  # Red down-pointing triangle for price decrease
         else:
             emoji = "▪️"  # Black square for no change (unlikely with float values)
 
-        message = f"{emoji} 🚨 BTC Price Update 🚨\nCurrent BTC price: ${price:,.2f}\n{emoji} Change: {price_change_percent:+.2f}%"
+        message = f"🚨 BTC Price Update 🚨\nCurrent BTC price: ${price:,.2f}\n{emoji} Change: {price_change_percent:+.2f}%"
         await context.bot.send_message(chat_id=chat_id, text=message)
         last_btc_price = price
         last_notification_time = current_time
@@ -60,7 +60,7 @@ async def send_btc_price_update(context: ContextTypes.DEFAULT_TYPE, price: float
 async def check_btc_price(context: ContextTypes.DEFAULT_TYPE):
     price = await get_btc_price()
     if price:
-        await send_btc_price_update(context, price)
+        await send_btc_price_update(context, price, force=True)
     else:
         logger.error("Failed to fetch BTC price")
 
